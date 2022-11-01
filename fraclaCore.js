@@ -27,8 +27,13 @@ function getGradientColor(percentage, gradient = []) {
             {color: {r: 0, g: 0, b: 255, a: 255}, percentage: 100},
             */
             // black and white
+            /*
             {color: {r: 0, g: 0, b: 0, a: 255}, percentage: 0},
             {color: {r: 255, g: 255, b: 255, a: 255}, percentage: 100},
+            */
+            // red to orange
+            {color: {r: 255, g: 0, b: 0, a: 255}, percentage: 0},
+            {color: {r: 255, g: 255, b: 0, a: 255}, percentage: 100},
         ]
     }
     return gradient.reduce((prev, curr) => {
@@ -38,7 +43,7 @@ function getGradientColor(percentage, gradient = []) {
                 r: prev.color.r + (curr.color.r - prev.color.r) * percentageInRange,
                 g: prev.color.g + (curr.color.g - prev.color.g) * percentageInRange,
                 b: prev.color.b + (curr.color.b - prev.color.b) * percentageInRange,
-                a: 255
+                a: prev.color.a + (curr.color.a - prev.color.a) * percentageInRange
             }
             return color
         }
@@ -47,6 +52,11 @@ function getGradientColor(percentage, gradient = []) {
 }
 
 class fractal {
+    constructor (algorithm = "Julia", {iterations = 100, scale = 0.5, offsetX = 0, offsetY = 0, c = {r: 0, i: 0}, color = true, smooth = true} = {}) {
+        this.algorithm = algorithm
+        this.option = {iterations, scale, offsetX, offsetY, c, color, smooth}
+    }
+
     static coolfigure = [
         {
             algorithm: "Julia",
@@ -55,7 +65,18 @@ class fractal {
                 offset: { x:0, y:0 },
                 scale: 0.45,
             }
-        }
+        },
+        {
+            algorithm: "Mandelbrot",
+            option: {offsetX: -0.5,}
+        },
+        {
+            algorithm: "BurningShip",
+            option: {
+                offsetX: -0.3,
+                offsetY: -0.5
+            }
+       }
     ]
 
     // return the color of the pixel with the Julia fractal algorithm
@@ -74,7 +95,104 @@ class fractal {
         }
         
         if (color) {
-            var ni
+            var ni = i
+            if (smooth) {
+                let log_zn = Math.log(x * x + y * y) / 2
+                let nu = Math.log(log_zn / Math.log(2)) / Math.log(2)
+                ni = i + 1 - nu
+            }
+            var color = {r: 0, g: 0, b: 0}
+            if (i == iterations) color = {r: 255, g: 255, b: 255}
+            else color = getGradientColor(ni / iterations * 100)
+            return color
+        } else return i
+    }
+
+    // return the color of the pixel with the Mandelbrot fractal algorithm
+    static Mandelbrot(x, y, width, height, {iterations = 100, scale = 0.5, offsetX = 0, offsetY = 0, color = true, smooth = true} = {}) {
+        // center the fractal, move it and scale it
+        var x = (x - width / 2) / (width / 2) / scale + offsetX
+        var y = (y - height / 2) / (height / 2) / scale / (width / height) + offsetY
+
+        // z = z^2 + c
+        var c = {r: x, i: y}
+        x = 0
+        y = 0
+        var i = 0
+        while (x * x + y * y < 4 && i < iterations) {
+            var xtemp = x * x - y * y + c.r
+            y = 2 * x * y + c.i
+            x = xtemp
+            i++
+        }
+
+        if (color) {
+            var ni = i
+            if (smooth) {
+                let log_zn = Math.log(x * x + y * y) / 2
+                let nu = Math.log(log_zn / Math.log(2)) / Math.log(2)
+                ni = i + 1 - nu
+            }
+            var color = {r: 0, g: 0, b: 0}
+            if (i == iterations) color = {r: 255, g: 255, b: 255}
+            else color = getGradientColor(ni / iterations * 100)
+            return color
+        } else return i
+    }
+
+    // return the color of the pixel with the Burning Ship fractal algorithm
+    static BurningShip(x, y, width, height, {iterations = 100, scale = 0.5, offsetX = 0, offsetY = 0, color = true, smooth = true} = {}) {
+        // center the fractal, move it and scale it
+        var x = (x - width / 2) / (width / 2) / scale + offsetX
+        var y = (y - height / 2) / (height / 2) / scale / (width / height) + offsetY
+
+        // z = z^2 + c
+        var c = {r: x, i: y}
+        x = 0
+        y = 0
+        var i = 0
+        while (x * x + y * y < 4 && i < iterations) {
+            var xtemp = Math.abs(x * x - y * y + c.r)
+            y = Math.abs(2 * x * y + c.i)
+            x = xtemp
+            i++
+        }
+
+        if (color) {
+            var ni = i
+            if (smooth) {
+                let log_zn = Math.log(x * x + y * y) / 2
+                let nu = Math.log(log_zn / Math.log(2)) / Math.log(2)
+                ni = i + 1 - nu
+            }
+            var color = {r: 0, g: 0, b: 0}
+            if (i == iterations) color = {r: 0, g: 0, b: 0}
+            else color = getGradientColor(ni / iterations * 100)
+            return color
+        } else return i
+    }
+
+    // return the color of the pixel with a custom fractal algorithm
+    static arrow(x, y, width, height, {iterations = 100, scale = 0.5, offsetX = 0, offsetY = 0, color = true, smooth = true, sin = "x"} = {}) {
+        // center the fractal, move it and scale it
+        var x = (x - width / 2) / (width / 2) / scale + offsetX
+        var y = (y - height / 2) / (height / 2) / scale / (width / height) + offsetY
+
+        // z = z^2 + c
+        var c = {r: x, i: y}
+        x = 0
+        y = 0
+        var i = 0
+        while (x * x + y * y < 4 && i < iterations) {
+            var xtemp = x * x - y * y + c.r
+            y = 2 * x * y + c.i;
+            x = (sin == "x") ? Math.sin(xtemp) : xtemp
+            if (sin == "y") y = Math.sin(y)
+            i++
+        }
+
+        if (color) {
+            var ni = i
             if (smooth) {
                 let log_zn = Math.log(x * x + y * y) / 2
                 let nu = Math.log(log_zn / Math.log(2)) / Math.log(2)
@@ -90,7 +208,7 @@ class fractal {
     // return image data of the fractal
     static createFractal(fractal, width = 1, height = 1, option = {}) {
         if (typeof fractal == "object") {
-            option = fractal.option
+            option = (fractal.option != undefined) ? fractal.option : option
             width = (fractal.width) ? fractal.width : width
             height = (fractal.height) ? fractal.height : height
             fractal = fractal.algorithm
@@ -101,7 +219,7 @@ class fractal {
         for (let x = 0; x < width; x++) {
             for (let y = 0; y < height; y++) {
                 let color = this[fractal](x, y, width, height, option)
-                img.SetPixel(x, y, color)
+                img.SetPixel(x, y, {r: color.r, g: color.g, b: color.b, a: 255})
             }
         }
         return img

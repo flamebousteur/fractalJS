@@ -8,25 +8,27 @@ canvas.height = window.innerHeight
 // canvas.height = 1080 * 2
 
 var width = canvas.width,
-    height = canvas.height
-    
-    
+    height = canvas.height,
+    algorithm = "Julia",
+    offset = {x: 0, y: 0},
+    scale = 0.5,
+    c = {r: -1, i: 0}
+
 function Draw(s, offx, offy, r, i) {
     ctx.putImageData(
-        fractal.createFractal("Julia", width, height, {scale: s, offsetX: offx, offsetY: offy, c: {r: r, i: i}}),
+        fractal.createFractal(algorithm, width, height, {scale: s, offsetX: offx, offsetY: offy, c: {r: r, i: i}}),
     0, 0)
 }
 
-
-var offset = {x: 0, y: 0}
-var scale = 0.5
-var c = {r: -1, i: 0}
-
 function set (f) {
     ctx.putImageData(fractal.createFractal(f, width, height), 0, 0)
-    offset = (f.option.offset != undefined) ? f.option.offset : offset
-    scale = (f.option.scale != undefined) ? f.option.scale : scale
-    c = (f.option.c != undefined) ? f.option.c : c
+    algorithm = (f.algorithm != undefined) ? f.algorithm : algorithm
+    if (f.option != undefined) {
+        offset.x = (f.option.offsetX != undefined) ? f.option.offsetX : offset.x
+        offset.y = (f.option.offsetY != undefined) ? f.option.offsetY : offset.y
+        scale = (f.option.scale != undefined) ? f.option.scale : scale
+        c = (f.option.c != undefined) ? f.option.c : c
+    }
 }
 
 function Update() {
@@ -35,16 +37,17 @@ function Update() {
 
 window.onbeforeunload = function () {
     // save the data (scale, offset, c)
-    localStorage.setItem("pos", JSON.stringify({scale: scale, offset: offset, c: c}))
+    localStorage.setItem("pos", JSON.stringify({scale: scale, offset: offset, c: c, algorithm: algorithm}))
 }
 
 window.onload = function () {
     if (localStorage.key("pos")) {
         // load the data (scale, offset, c)
         var pos = JSON.parse(localStorage.getItem("pos"))
-        scale = pos.scale
-        offset = pos.offset
-        c = pos.c
+        algorithm = (pos.algorithm != undefined) ? pos.algorithm : algorithm
+        scale = (pos.scale != undefined) ? pos.scale : scale
+        offset = (pos.offset != undefined) ? pos.offset : offset
+        c = (pos.c != undefined) ? pos.c : c
     }
     Update()
 }
@@ -163,25 +166,25 @@ controls.appendChild(div)
 var div = document.createElement("div")
 var colorPicker = document.createElement("div")
 var colorPickerLabel = document.createElement("label")
-var PickerJulia = document.createElement("span")
+var PickerFractal = document.createElement("span")
 colorPickerLabel.innerHTML = "Pick a color"
 colorPicker.style.width = "20px"
 colorPicker.style.height = "20px"
 colorPicker.style.border = "1px solid black"
 colorPicker.style.backgroundColor = "white"
-PickerJulia.innerHTML = "Julia"
+PickerFractal.innerHTML = algorithm
 canvas.addEventListener("mousemove", function (e) {
     var x = e.offsetX
     var y = e.offsetY
     var color = ctx.getImageData(x, y, 1, 1).data
     colorPicker.style.backgroundColor = "rgb(" + color[0] + ", " + color[1] + ", " + color[2] + ")"
     colorPickerLabel.innerHTML = "Pick a color: " + color[0] + ", " + color[1] + ", " + color[2]
-    PickerJulia.innerHTML = "Julia: " + fractal.Julia(x, y, width, height, {scale: scale, offsetX: offset.x, offsetY: offset.y, c: {r: c.r, i: c.i}, color: false, smooth: false})
+    PickerFractal.innerHTML = algorithm+": " + fractal[algorithm](x, y, width, height, {scale: scale, offsetX: offset.x, offsetY: offset.y, c: {r: c.r, i: c.i}, color: false, smooth: false})
 })
 div.id = "colorPicker"
 div.appendChild(colorPicker)
 div.appendChild(colorPickerLabel)
-div.appendChild(PickerJulia)
+div.appendChild(PickerFractal)
 controls.appendChild(div)
 
 // download the image
