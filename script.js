@@ -8,50 +8,37 @@ canvas.height = window.innerHeight
 // canvas.height = 1080 * 2
 
 var width = canvas.width,
-    height = canvas.height,
-    algorithm = "Julia",
-    offset = {x: 0, y: 0},
-    scale = 0.5,
-    c = {r: -1, i: 0}
+    height = canvas.height
 
-function Draw(s, offx, offy, r, i) {
-    ctx.putImageData(
-        fractal.createFractal(algorithm, width, height, {scale: s, offsetX: offx, offsetY: offy, c: {r: r, i: i}}),
-    0, 0)
-}
-
-function set (f) {
-    ctx.putImageData(fractal.createFractal(f, width, height), 0, 0)
-    algorithm = (f.algorithm != undefined) ? f.algorithm : algorithm
-    if (f.option != undefined) {
-        offset.x = (f.option.offsetX != undefined) ? f.option.offsetX : offset.x
-        offset.y = (f.option.offsetY != undefined) ? f.option.offsetY : offset.y
-        scale = (f.option.scale != undefined) ? f.option.scale : scale
-        c = (f.option.c != undefined) ? f.option.c : c
+var option = {
+        algorithm: "Julia",
+        offset: {x: 0, y: 0},
+        scale: 0.5,
+        c: {r: -1, i: 0},
     }
-}
 
-function Update() {
-    Draw(scale, offset.x, offset.y, c.r, c.i)
+console.log("a",option)
+
+function Update(opt = null) {
+    if (opt != null) option = opt
+    ctx.putImageData(fractal.createFractal(width, height, option, function(percent) {
+        console.log(percent + "%")
+    }), 0, 0)
 }
 
 window.onbeforeunload = function () {
     // save the data (scale, offset, c)
-    localStorage.setItem("pos", JSON.stringify({scale: scale, offset: offset, c: c, algorithm: algorithm}))
+    localStorage.setItem("data", JSON.stringify(option))
 }
 
 window.onload = function () {
-    if (localStorage.key("pos")) {
+    if (localStorage.key("data") != null) {
         // load the data (scale, offset, c)
-        var pos = JSON.parse(localStorage.getItem("pos"))
-        algorithm = (pos.algorithm != undefined) ? pos.algorithm : algorithm
-        scale = (pos.scale != undefined) ? pos.scale : scale
-        offset = (pos.offset != undefined) ? pos.offset : offset
-        c = (pos.c != undefined) ? pos.c : c
+        var data = JSON.parse(localStorage.getItem("data"))
+        option = data
     }
     Update()
 }
-
 
 // move the fractal: click and drag
 // stop moving: release the mouse button
@@ -61,12 +48,12 @@ canvas.addEventListener("mousedown", function (e) {
         y: e.clientY
     }
     canvas.onmousemove = function (e) {
-        offset.x -= (e.clientX - mouse.x) / scale / 500
-        offset.y -= (e.clientY - mouse.y) / scale / 500
+        option.offset.x -= (e.clientX - mouse.x) / option.scale / 500
+        option.offset.y -= (e.clientY - mouse.y) / option.scale / 500
         mouse.x = e.clientX
         mouse.y = e.clientY
-        Update()
         canvas.style.cursor = "grabbing"
+        Update()
     }
     canvas.addEventListener("mouseup", function (e) {
         canvas.onmousemove = null
@@ -76,11 +63,8 @@ canvas.addEventListener("mousedown", function (e) {
 
 // zoom the fractal
 canvas.addEventListener("wheel", (e) => {
-    if (e.deltaY < 0) {
-        scale *= 1.5
-    } else {
-        scale /= 1.5
-    }
+    if (e.deltaY < 0) option.scale *= 1.5
+    else option.scale /= 1.5
     Update()
 })
 
@@ -109,12 +93,12 @@ controls.addEventListener("mousedown", function (e) {
 var div = document.createElement("div")
 var ioffEle = document.createElement("input")
 var ioffLabel = document.createElement("label")
-ioffLabel.innerHTML = "IOffset: " + c.i
+ioffLabel.innerHTML = "IOffset: " + option.c.i
 ioffEle.type = "range"
-ioffEle.defaultValue = c.i
+ioffEle.defaultValue = option.c.i
 ioffEle.min = -100
 ioffEle.max = 100
-ioffEle.addEventListener("input", function (e) {c.i = e.target.value / 100; ioffLabel.innerHTML = "IOffset: " + c.i;})
+ioffEle.addEventListener("input", function (e) {option.c.i = e.target.value / 100; ioffLabel.innerHTML = "IOffset: " + option.c.i;})
 div.appendChild(ioffEle)
 div.appendChild(ioffLabel)
 controls.appendChild(div)
@@ -123,12 +107,12 @@ controls.appendChild(div)
 var div = document.createElement("div")
 var roffEle = document.createElement("input")
 var roffLabel = document.createElement("label")
-roffLabel.innerHTML = "ROffset: " + c.r
+roffLabel.innerHTML = "ROffset: " + option.c.r
 roffEle.type = "range"
-roffEle.defaultValue = c.r * 100
+roffEle.defaultValue = option.c.r * 100
 roffEle.min = -100
 roffEle.max = 100
-roffEle.addEventListener("input", function (e) {c.r = e.target.value / 100; roffLabel.innerHTML = "ROffset: " + c.r;})
+roffEle.addEventListener("input", function (e) {option.c.r = e.target.value / 100; roffLabel.innerHTML = "ROffset: " + option.c.r;})
 div.appendChild(roffEle)
 div.appendChild(roffLabel)
 controls.appendChild(div)
@@ -147,10 +131,10 @@ animateLabel.innerHTML = "Animate"
 animate.type = "checkbox"
 function an() {
     if (animate.checked) {
-        if (c.i > 1) c.i = -1
-        if (c.r > 1) c.r = -1
-        c.i += 0.01
-        c.r += 0.01
+        if (option.c.i > 1) option.c.i = -1
+        if (option.c.r > 1) option.c.r = -1
+        option.c.i += 0.01
+        option.c.r += 0.01
         Update()
         requestAnimationFrame(an)
     } else {
@@ -172,14 +156,18 @@ colorPicker.style.width = "20px"
 colorPicker.style.height = "20px"
 colorPicker.style.border = "1px solid black"
 colorPicker.style.backgroundColor = "white"
-PickerFractal.innerHTML = algorithm
+PickerFractal.innerHTML = option.algorithm
 canvas.addEventListener("mousemove", function (e) {
     var x = e.offsetX
     var y = e.offsetY
     var color = ctx.getImageData(x, y, 1, 1).data
     colorPicker.style.backgroundColor = "rgb(" + color[0] + ", " + color[1] + ", " + color[2] + ")"
     colorPickerLabel.innerHTML = "Pick a color: " + color[0] + ", " + color[1] + ", " + color[2]
-    PickerFractal.innerHTML = algorithm+": " + fractal[algorithm](x, y, width, height, {scale: scale, offsetX: offset.x, offsetY: offset.y, c: {r: c.r, i: c.i}, color: false, smooth: false})
+    var x = (x - width / 2) / (width / 2) / option.scale + option.offset.x
+    var y = (y - height / 2) / (height / 2) / option.scale / (width / height) + option.offset.y
+    option.color = false
+    PickerFractal.innerHTML = option.algorithm+": " + fractal[option.algorithm](x, y, option)
+    option.color = true
 })
 div.id = "colorPicker"
 div.appendChild(colorPicker)
