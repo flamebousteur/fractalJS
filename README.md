@@ -1,6 +1,8 @@
 # fractalJS
 fractalJS is a JavaScript library for generating fractals. The preview is shown in an HTML5 canvas element.
 
+# fractalCore
+
 ## class Fractal
 ### constructor (algorithm = "Julia", {iterations = 100, scale = 0.5, offsetX = 0, offsetY = 0, c = {r: 0, i: 0}, color = true, smooth = true} = {}): Fractal
 > Creates a new Fractal object.
