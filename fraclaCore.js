@@ -252,7 +252,70 @@ class fractal {
     }
 }
 
-// if nodeJs is used, export the function
-if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') module.exports = { fractal }
+// animate the fractal with keyframes
+class AnimateFractal {
+    constructor({duration = 1000, keyframes = [], width = 1, height = 1} = {}) {
+        this.duration = duration
+        this.keyframes = keyframes
+        this.width = width
+        this.height = height
+    }
+
+    // add a keyframe
+    addKeyframe({frame = 0, data = null, callback = null} = {}) {
+        this.keyframes.push({frame: frame, data: data, callback: callback})
+    }
+
+    // get frame data
+    getFrameData(frame = 0) {
+        // if the frame is out of the animation duration
+        if (frame > this.duration) throw new Error("Frame "+frame+" is out of the animation duration")
+        // if the frame is not a keyframes calculate the data
+        if (!this.keyframes.find(k => k.frame == frame)) {
+            var prev = this.keyframes.find(k => k.frame < frame)
+            // if there is no keyframe before the frame return the first keyframe data
+            if (!prev) prev = this.keyframes[0]
+            var next = this.keyframes.find(k => k.frame > frame)
+            // if there is no keyframe after the frame return the last keyframe data
+            if (!next) next = this.keyframes[this.keyframes.length - 1]
+            var percent = (frame - prev.frame) / (next.frame - prev.frame)
+            var data = {}
+            for (let key in prev.data) {
+                if (typeof prev.data[key] == "number") data[key] = prev.data[key] + (next.data[key] - prev.data[key]) * percent
+                else data[key] = prev.data[key]
+            }
+            return data
+        } else return this.keyframes.find(k => k.frame == frame).data
+    }
+
+    // render a frame and return ImageData
+    renderFrame(frame = 0) {
+        // if the frame is out of the animation duration
+        if (frame > this.duration) throw new Error("Frame "+frame+" is out of the animation duration")
+        // call the callback of the keyframe
+        var keyframe = this.keyframes.find(k => k.frame == frame)
+        if (keyframe && keyframe.callback) keyframe.callback(keyframe.data)
+        // get the data of the frame
+        var data = this.getFrameData(frame)
+        // render the fractal
+        var img = fractal.createFractal(this.width, this.height, data)
+        return img
+    }
+
+    // render the animation
+    render({from = 0, to = this.duration} = {}, onFrame = null) {
+        if (from > to) throw new Error("from must be lower than to: " + from + " " + to)
+        for (let frame = from; frame < to; frame++) {
+            var img = this.renderFrame(frame)
+            if (typeof onFrame == "function") onFrame(img, frame)
+        }
+    }
+}
+
+// if nodeJS is used create a class for better Animation rendering
+if (typeof module !== "undefined") module.exports = {fractal, AnimateFractal}
 // if browser is used, add the function to the window object
-else window.fractal = fractal
+else if (typeof window !== 'undefined') {
+    window.fractal = fractal
+    window.AnimateFractal = AnimateFractal
+} else throw new Error("Fractal.js can only be used in nodeJs or browser")
