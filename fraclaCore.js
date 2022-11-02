@@ -1,3 +1,12 @@
+/**
+ * you can use and modify this code for free but please keep this comment
+ * thanks
+ * 
+ * @author: flamebousteur
+ * @site: https://flamebousteur.github.io
+ * @source: https://github.com/flamebousteur/fractalJS
+ */
+
 ImageData.prototype.SetPixel = function (x, y, color = { r: 0, g: 0, b: 0, a: 255 }) {
     this.data[(x + y * this.width) * 4] = color.r
     this.data[(x + y * this.width) * 4 + 1] = color.g
@@ -75,7 +84,15 @@ class fractal {
        }
     ]
 
-    // return the color of the pixel with the Julia fractal algorithm
+    /**
+     * @brief: return the color of the pixel with the Julia fractal algorithm
+     * 
+     * @param {number} x: the x coordinate of the pixel
+     * @param {number} y: the y coordinate of the pixel
+     * @param {object} option: the option of the fractal
+     * 
+     * @return {object}: the color of the pixel
+     */
     static Julia(x, y, {iterations = 100, c = {r: 0, i: 0}, color = true, smooth = true} = {}) {
         // z = z^2 + c
         var i = 0
@@ -100,7 +117,14 @@ class fractal {
         } else return i
     }
 
-    // return the color of the pixel with the Mandelbrot fractal algorithm
+    /**
+     * return the color of the pixel with the Mandelbrot fractal algorithm
+     * @param {number} x: the x coordinate of the pixel
+     * @param {number} y: the y coordinate of the pixel
+     * @param {object} option: the option of the fractal
+     * 
+     * @return {object}: the color of the pixel
+     */
     static Mandelbrot(x, y, {iterations = 100, color = true, smooth = true} = {}) {
         // z = z^2 + c
         var c = {r: x, i: y}
@@ -128,7 +152,14 @@ class fractal {
         } else return i
     }
 
-    // return the color of the pixel with the Burning Ship fractal algorithm
+    /**
+     * return the color of the pixel with the Burning Ship fractal algorithm
+     * @param {number} x: the x coordinate of the pixel
+     * @param {number} y: the y coordinate of the pixel
+     * @param {object} option: the option of the fractal
+     * 
+     * @return {object}: the color of the pixel
+     */
     static BurningShip(x, y, {iterations = 100, color = true, smooth = true} = {}) {
         // z = |z^2 + c|
         var c = {r: x, i: y}
@@ -156,7 +187,14 @@ class fractal {
         } else return i
     }
 
-    // return the color of the pixel with a custom fractal algorithm
+    /**
+     * return the color of the pixel with a custom fractal algorithm
+     * @param {number} x: the x coordinate of the pixel
+     * @param {number} y: the y coordinate of the pixel
+     * @param {object} option: the option of the fractal
+     * 
+     * @return {object}: the color of the pixel
+     */
     static arrow(x, y, {iterations = 100, color = true, smooth = true, sin = "x"} = {}) {
         // z = sin(z + c)
         var c = {r: x, i: y}
@@ -185,7 +223,14 @@ class fractal {
         } else return i
     }
 
-    // return the color of the pixel with a custom fractal algorithm
+    /**
+     * return the color of the pixel with a custom fractal algorithm
+     * @param {number} x: the x coordinate of the pixel
+     * @param {number} y: the y coordinate of the pixel
+     * @param {object} option: the option of the fractal
+     * 
+     * @return {object}: the color of the pixel
+     */
     static test(x, y, {iterations = 100, color = true, smooth = true, sin = "x"} = {}) {
         // z = sin(z + c)
         var c = {r: x, i: y}
@@ -214,19 +259,15 @@ class fractal {
         } else return i
     }
 
-    static sierpinskiCarpet(x, y, {size} = {}) {
-        if (size < limit) return;
-        size = size / 3;
-        for (i = 0; i < 9; i = i + 1)
-           if (i == 4){
-
-                rect(x+size, y+size, size, size);
-                noFill();
-           }
-           else sierpinskiCarpet(x+(i%3)*size, y+(i/3)*size, {size});
-     }
-
-    // return image data of the fractal
+    /**
+     * return image data of the fractal
+     * @param {number} width: the width of the image
+     * @param {number} height: the height of the image
+     * @param {object} option: the option of the fractal
+     * @param {function} log: the function to log the progress (%)
+     * 
+     * @return {ImageData}: the image data of the fractal
+     */
     static createFractal(width = 1, height = 1, option = {}, log = null) {
         if (!this[option.algorithm]) throw new Error("Fractal algorithm "+option.algorithm+" not found")
         var img = new ImageData(width, height)
@@ -250,6 +291,26 @@ class fractal {
         }
         return img
     }
+
+    /**
+     * return the color of the pixel with the curent fractal algorithm
+     * @param {number} x: the x coordinate of the pixel
+     * @param {number} y: the y coordinate of the pixel
+     * 
+     * @return {object}: the color of the pixel
+     */
+    getPixel(x, y) {
+        if (!fractal[this.algorithm]) throw new Error("The algorithm '" + this.algorithm + "' is not defined")
+        return fractal[this.algorithm](x, y, this.option)
+    }
+
+    /**
+     * return image data of the fractal
+     * @return {ImageData}: the image data of the fractal
+     */
+    createFractal() {
+        return fractal.createFractal(this.width, this.height, this.option, this.log)
+    }
 }
 
 // animate the fractal with keyframes
@@ -261,12 +322,20 @@ class AnimateFractal {
         this.height = height
     }
 
-    // add a keyframe
-    addKeyframe({frame = 0, data = null, callback = null} = {}) {
-        this.keyframes.push({frame: frame, data: data, callback: callback})
+    /**
+     * add a keyframe
+     * @param {object} keyframe: the keyframe to add
+     */
+    addKeyframe({frame = 0, data = null, } = {}) {
+        this.keyframes.push({frame: frame, data: data})
     }
 
-    // get frame data
+    /**
+     * get frame data
+     * @param {number} frame: the frame to get
+     * 
+     * @return {object}: the data of the frame
+     */
     getFrameData(frame = 0) {
         // if the frame is out of the animation duration
         if (frame > this.duration) throw new Error("Frame "+frame+" is out of the animation duration")
@@ -288,13 +357,15 @@ class AnimateFractal {
         } else return this.keyframes.find(k => k.frame == frame).data
     }
 
-    // render a frame and return ImageData
+    /**
+     * render a frame and return ImageData
+     * @param {number} frame: the frame to render
+     * 
+     * @return {ImageData}: the image data of the frame
+     */
     renderFrame(frame = 0) {
         // if the frame is out of the animation duration
         if (frame > this.duration) throw new Error("Frame "+frame+" is out of the animation duration")
-        // call the callback of the keyframe
-        var keyframe = this.keyframes.find(k => k.frame == frame)
-        if (keyframe && keyframe.callback) keyframe.callback(keyframe.data)
         // get the data of the frame
         var data = this.getFrameData(frame)
         // render the fractal
@@ -302,7 +373,11 @@ class AnimateFractal {
         return img
     }
 
-    // render the animation
+    /**
+     * render the animation
+     * @param {object} option: the option of the animation
+     * @param {function} onFrame: the function to get the images
+     */
     render({from = 0, to = this.duration} = {}, onFrame = null) {
         if (from > to) throw new Error("from must be lower than to: " + from + " " + to)
         for (let frame = from; frame < to; frame++) {
