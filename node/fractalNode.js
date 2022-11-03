@@ -65,15 +65,19 @@ anim.addKeyframe({
 })
 
 /*
-renderFractal(1920, 1080, {
-	algorithm: "Mandelbrot",
-	offset: { x:-1.76, y:0 },
-	scale: 6,
-}, "./image.png")
 */
+renderFractal(
+	1920*2,
+	1080*2,
+	{
+		algorithm: "BurningShip",
+		offset: { x:-0.3, y:-0.5 },
+		scale: 0.8,
+	},
+	"./image.png")
 
 //renderAnimation('./images', {from: 0, to: 24 * 2})
 //renderAnimation('./images', {from: 24 * 2, to: 24 * 4})
 //renderAnimation('./images', {from: 24 * 4, to: 24 * 6})
 //renderAnimation('./images', {from: 24 * 6, to: 24 * 8})
-renderAnimation('./images', {from: 24 * 8, to: 24 * 10})
+//renderAnimation('./images', {from: 24 * 8, to: 24 * 10})

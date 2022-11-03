@@ -38,27 +38,29 @@ function objectFusion (opt1, opt2) {
     return opt
 }
 
+var defaultGradient = [
+    // rgba
+    /*
+    {color: {r: 255, g: 0, b: 0, a: 255}, percentage: 0},
+    {color: {r: 255, g: 255, b: 0, a: 255}, percentage: 25},
+    {color: {r: 0, g: 255, b: 0, a: 255}, percentage: 50},
+    {color: {r: 0, g: 255, b: 255, a: 255}, percentage: 75},
+    {color: {r: 0, g: 0, b: 255, a: 255}, percentage: 100},
+    */
+    // black and white
+    {color: {r: 0, g: 0, b: 0, a: 255}, percentage: 0},
+    {color: {r: 255, g: 255, b: 255, a: 255}, percentage: 100},
+    /*
+    // red to white
+    {color: {r: 255, g: 0, b: 0, a: 255}, percentage: 0},
+    {color: {r: 255, g: 255, b: 0, a: 255}, percentage: 100},
+    */
+]
+
 function getGradientColor(percentage, gradient = []) {
     if (gradient.length == 0) {
         // gradient color (rgba) and percentage (0-100)
-        gradient = [
-            // rgba
-            /*
-            {color: {r: 255, g: 0, b: 0, a: 255}, percentage: 0},
-            {color: {r: 255, g: 255, b: 0, a: 255}, percentage: 25},
-            {color: {r: 0, g: 255, b: 0, a: 255}, percentage: 50},
-            {color: {r: 0, g: 255, b: 255, a: 255}, percentage: 75},
-            {color: {r: 0, g: 0, b: 255, a: 255}, percentage: 100},
-            */
-            // black and white
-            /*
-            {color: {r: 0, g: 0, b: 0, a: 255}, percentage: 0},
-            {color: {r: 255, g: 255, b: 255, a: 255}, percentage: 100},
-            */
-            // red to orange
-            {color: {r: 255, g: 0, b: 0, a: 255}, percentage: 0},
-            {color: {r: 255, g: 255, b: 0, a: 255}, percentage: 100},
-        ]
+        gradient = defaultGradient
     }
     return gradient.reduce((prev, curr) => {
         if (percentage >= prev.percentage && percentage <= curr.percentage) {
@@ -86,17 +88,29 @@ class fractal {
             algorithm: "Julia",
             c: { r:-1.3, i:0.07 },
             offset: { x:0, y:0 },
-            scale: 0.45,
+            scale: 0.8,
         },
         {
             algorithm: "Mandelbrot",
-            offsetX: -0.5,
+            offset: { x:-0.5, y:0 },
+            scale: 0.8,
+        },
+        {
+            algorithm: "Mandelbrot",
+            offset: { x:-1, y:0 },
+            scale: 1.1,
         },
         {
             algorithm: "BurningShip",
-            offsetX: -0.3,
-            offsetY: -0.5,
-       }
+            offset: { x:-0.3, y:-0.5 },
+            scale: 0.8,
+        },
+        {
+            algorithm: "Julia",
+            c: { r:-0.162, i:1.04 },
+            offset: { x:0, y:0 },
+            scale: 4,
+        }
     ]
 
     /**

@@ -207,10 +207,11 @@ MyAnimateFractal.render({
 thanks use FractalJS
 
 # example
+<style>img{width:960px;display:block;}</style>
 Julia:
-
+![Julia](./example%20image/Julia.png)
+![Julia](./example%20image/Julia2.png)
 Mandelbrot:
-
+![Mandelbrot](./example%20image/Mandelbrot.png)
 BurningShip:
-
-arrow:
+![Mandelbrot](./example%20image/BurningShip.png)
