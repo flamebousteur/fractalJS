@@ -7,6 +7,9 @@
  * @source: https://github.com/flamebousteur/fractalJS
  */
 
+// set image data if undefined (nodeJS)
+var ImageData = (ImageData == undefined) ? function (width, height) { this.width = width; this.height = height; this.data = new Uint8ClampedArray(width * height * 4) } : ImageData
+
 ImageData.prototype.SetPixel = function (x, y, color = { r: 0, g: 0, b: 0, a: 255 }) {
     this.data[(x + y * this.width) * 4] = color.r
     this.data[(x + y * this.width) * 4 + 1] = color.g
@@ -21,6 +24,18 @@ ImageData.prototype.GetPixel = function (x, y) {
         b: this.data[(x + y * this.width) * 4 + 2],
         a: this.data[(x + y * this.width) * 4 + 3]
     }
+}
+
+function objectFusion (opt1, opt2) {
+    var opt = {}
+    for (let key in opt1) {
+        if (typeof opt1[key] == "object") {
+            opt[key] = objectFusion(opt1[key], opt2[key])
+        } else {
+            opt[key] = opt2[key] || opt1[key]
+        }
+    }
+    return opt
 }
 
 function getGradientColor(percentage, gradient = []) {
@@ -283,8 +298,8 @@ class fractal {
                     }
                 }
                 // center the fractal, move it and scale it
-                let x = (gx - width / 2) / (width / 2) / option.scale + option.offset.x
-                let y = (gy - height / 2) / (height / 2) / option.scale / (width / height) + option.offset.y
+                let x = (gx - width / 2) / (width / 2) / Math.pow(option.scale, 2) + option.offset.x
+                let y = (gy - height / 2) / (height / 2) / Math.pow(option.scale, 2) / (width / height) + option.offset.y
                 let color = this[option.algorithm](x, y, option)
                 img.SetPixel(gx, gy, {r: color.r, g: color.g, b: color.b, a: 255})
             }
@@ -315,7 +330,7 @@ class fractal {
 
 // animate the fractal with keyframes
 class AnimateFractal {
-    constructor({duration = 1000, keyframes = [], width = 1, height = 1} = {}) {
+    constructor(width = 1, height = 1, {duration = 1000, keyframes = []} = {}) {
         this.duration = duration
         this.keyframes = keyframes
         this.width = width
@@ -326,7 +341,7 @@ class AnimateFractal {
      * add a keyframe
      * @param {object} keyframe: the keyframe to add
      */
-    addKeyframe({frame = 0, data = null, } = {}) {
+    addKeyframe({frame = 0, data = null} = {}) {
         this.keyframes.push({frame: frame, data: data})
     }
 
@@ -351,6 +366,13 @@ class AnimateFractal {
             var data = {}
             for (let key in prev.data) {
                 if (typeof prev.data[key] == "number") data[key] = prev.data[key] + (next.data[key] - prev.data[key]) * percent
+                else if (typeof prev.data[key] == "object") {
+                    data[key] = {}
+                    for (let k in prev.data[key]){
+                        if (typeof prev.data[key][k] == "number" && next.data[key]) data[key][k] = prev.data[key][k] + (next.data[key][k] - prev.data[key][k]) * percent
+                        else data[key][k] = prev.data[key][k]
+                    }
+                }
                 else data[key] = prev.data[key]
             }
             return data
@@ -363,13 +385,13 @@ class AnimateFractal {
      * 
      * @return {ImageData}: the image data of the frame
      */
-    renderFrame(frame = 0) {
+    renderFrame(frame = 0, log) {
         // if the frame is out of the animation duration
         if (frame > this.duration) throw new Error("Frame "+frame+" is out of the animation duration")
         // get the data of the frame
         var data = this.getFrameData(frame)
         // render the fractal
-        var img = fractal.createFractal(this.width, this.height, data)
+        var img = fractal.createFractal(this.width, this.height, data, log)
         return img
     }
 
@@ -378,10 +400,10 @@ class AnimateFractal {
      * @param {object} option: the option of the animation
      * @param {function} onFrame: the function to get the images
      */
-    render({from = 0, to = this.duration} = {}, onFrame = null) {
+    render({from = 0, to = this.duration} = {}, onFrame = null, log) {
         if (from > to) throw new Error("from must be lower than to: " + from + " " + to)
         for (let frame = from; frame < to; frame++) {
-            var img = this.renderFrame(frame)
+            var img = this.renderFrame(frame, log)
             if (typeof onFrame == "function") onFrame(img, frame)
         }
     }

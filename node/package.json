@@ -1,0 +1,9 @@
+{
+  "name": "fractal_node",
+  "version": "1.0.0",
+  "main": "fractalNode.js",
+  "author": "flamebousteur",
+  "dependencies": {
+    "pngjs": "^6.0.0"
+  }
+}
